@@ -1,0 +1,90 @@
+/* ================================
+   FlowPilot UI Foundation
+   Chartreuse background
+   Black text
+   Black cards with white text
+   Arial font
+================================ */
+
+:root {
+  --fp-bg: #7fff00;          /* chartreuse */
+  --fp-text: #000000;        /* black text */
+  --fp-card-bg: #000000;     /* black cards */
+  --fp-card-text: #ffffff;  /* white text inside cards */
+  --fp-border: #000000;
+  --fp-radius: 12px;
+  --fp-font: Arial, Helvetica, sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  background: var(--fp-bg);
+  color: var(--fp-text);
+  font-family: var(--fp-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ================================
+   Global reset
+================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ================================
+   Card / Box styling
+================================ */
+
+.fp-card {
+  background: var(--fp-card-bg);
+  color: var(--fp-card-text);
+  border-radius: var(--fp-radius);
+  padding: 18px;
+  border: 1px solid var(--fp-border);
+}
+
+/* Ensure headings and text inside cards are white */
+.fp-card h1,
+.fp-card h2,
+.fp-card h3,
+.fp-card h4,
+.fp-card h5,
+.fp-card h6,
+.fp-card p,
+.fp-card span,
+.fp-card li,
+.fp-card label {
+  color: var(--fp-card-text);
+}
+
+/* ================================
+   Utility styles
+================================ */
+
+.fp-muted {
+  opacity: 0.8;
+}
+
+.fp-divider {
+  height: 1px;
+  background: var(--fp-card-text);
+  margin: 12px 0;
+}
+
+/* ================================
+   End FlowPilot foundation
+================================ */

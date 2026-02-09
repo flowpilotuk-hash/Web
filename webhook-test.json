@@ -1,0 +1,6 @@
+﻿{
+  "id": "test-event-005",
+  "customerName": "Test Customer",
+  "customerEmail": "test@example.com",
+  "appointmentEnd": "2026-02-07T22:05:21.4437981+00:00"
+}
