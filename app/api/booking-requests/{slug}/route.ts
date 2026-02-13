@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 type ApiErr = { error: string };
@@ -17,7 +17,7 @@ function supabaseAdmin() {
   const url = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
   return createClient(url, serviceKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    auth: { persistSession: false, autoRefreshToken: false }
   });
 }
 
@@ -26,7 +26,6 @@ function normalizeSpaces(s: string): string {
 }
 
 function isEmail(s: string): boolean {
-  // simple, practical validation
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim());
 }
 
@@ -43,9 +42,12 @@ function isIsoDateOnly(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s);
 }
 
-export async function POST(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function POST(
+  req: NextRequest,
+  context: { params: { slug: string } }
+) {
   try {
-    const { slug } = await params;
+    const slug = context.params.slug;
     if (!slug || typeof slug !== "string") return jsonError("Missing slug.", 400);
 
     const supabase = supabaseAdmin();
@@ -63,7 +65,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
       return jsonError("This salon uses a booking provider link (no request form).", 409);
     }
 
-    // Accept form submissions (recommended for public pages)
+    // Accept either JSON or form submissions
     const contentType = req.headers.get("content-type") ?? "";
 
     let customerName = "";
@@ -75,17 +77,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
     let notes = "";
 
     if (contentType.includes("application/json")) {
-      const body = await req.json().catch(() => null);
+      const body = (await req.json().catch(() => null)) as any;
       if (!body || typeof body !== "object") return jsonError("Body must be valid JSON.", 400);
 
-      const b = body as any;
-      customerName = typeof b.customerName === "string" ? b.customerName : "";
-      customerEmail = typeof b.customerEmail === "string" ? b.customerEmail : "";
-      customerPhone = typeof b.customerPhone === "string" ? b.customerPhone : "";
-      requestedDate = typeof b.requestedDate === "string" ? b.requestedDate : "";
-      windowStart = typeof b.windowStart === "string" ? b.windowStart : "";
-      windowEnd = typeof b.windowEnd === "string" ? b.windowEnd : "";
-      notes = typeof b.notes === "string" ? b.notes : "";
+      customerName = typeof body.customerName === "string" ? body.customerName : "";
+      customerEmail = typeof body.customerEmail === "string" ? body.customerEmail : "";
+      customerPhone = typeof body.customerPhone === "string" ? body.customerPhone : "";
+      requestedDate = typeof body.requestedDate === "string" ? body.requestedDate : "";
+      windowStart = typeof body.windowStart === "string" ? body.windowStart : "";
+      windowEnd = typeof body.windowEnd === "string" ? body.windowEnd : "";
+      notes = typeof body.notes === "string" ? body.notes : "";
     } else {
       const fd = await req.formData();
       customerName = String(fd.get("customerName") ?? "");
@@ -126,12 +127,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ slug: s
         window_start: windowStart,
         window_end: windowEnd,
         notes: notes || null,
-        status: "pending",
+        status: "pending"
       })
       .select("id")
       .single();
 
     if (insErr) return jsonError(insErr.message, 500);
+
+    // If the request came from a browser form, redirect to a simple thank-you.
+    // (Keeps UX clean without requiring a new page.)
+    if (!contentType.includes("application/json")) {
+      return NextResponse.redirect(new URL(`/book/${encodeURIComponent(slug)}?sent=1`, req.url), 303);
+    }
 
     return NextResponse.json({ ok: true, requestId: inserted.id }, { status: 200 });
   } catch (e) {
