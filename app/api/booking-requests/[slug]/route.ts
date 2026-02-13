@@ -44,10 +44,10 @@ function isIsoDateOnly(s: string): boolean {
 
 export async function POST(
   req: NextRequest,
-  context: { params: { slug: string } }
+  context: { params: Promise<{ slug: string }> }
 ) {
   try {
-    const slug = context.params.slug;
+    const { slug } = await context.params;
     if (!slug || typeof slug !== "string") return jsonError("Missing slug.", 400);
 
     const supabase = supabaseAdmin();
@@ -134,8 +134,7 @@ export async function POST(
 
     if (insErr) return jsonError(insErr.message, 500);
 
-    // If the request came from a browser form, redirect to a simple thank-you.
-    // (Keeps UX clean without requiring a new page.)
+    // If the request came from a browser form, redirect back with a success flag
     if (!contentType.includes("application/json")) {
       return NextResponse.redirect(new URL(`/book/${encodeURIComponent(slug)}?sent=1`, req.url), 303);
     }
