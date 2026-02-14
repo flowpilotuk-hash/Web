@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function HomePage() {
@@ -50,13 +49,14 @@ export default function HomePage() {
             Install app
           </button>
 
-          {/* ✅ Correct Clerk routes */}
-          <Link href="/sign-in" style={styles.navLink}>
+          {/* Force full navigation (reliable in production) */}
+          <a href="/sign-in" style={styles.navLink}>
             Sign in
-          </Link>
-          <Link href="/sign-up" style={styles.ctaPrimary}>
+          </a>
+
+          <a href="/sign-up" style={styles.ctaPrimary}>
             Start Free Trial
-          </Link>
+          </a>
         </nav>
       </header>
 
@@ -74,10 +74,10 @@ export default function HomePage() {
           </p>
 
           <div style={styles.heroCtas}>
-            {/* ✅ Correct Clerk route */}
-            <Link href="/sign-up" style={styles.ctaPrimaryLg}>
+            <a href="/sign-up" style={styles.ctaPrimaryLg}>
               Start Free Trial
-            </Link>
+            </a>
+
             <button type="button" onClick={onInstallClick} style={styles.ctaSecondaryLg}>
               Install app
             </button>
@@ -168,9 +168,9 @@ export default function HomePage() {
           </div>
 
           <div style={styles.finalActions}>
-            <Link href="/sign-up" style={styles.ctaPrimaryLg}>
+            <a href="/sign-up" style={styles.ctaPrimaryLg}>
               Start Free Trial
-            </Link>
+            </a>
             <div style={styles.subtleNote}>Subscription after trial • Cancel anytime</div>
           </div>
         </div>
