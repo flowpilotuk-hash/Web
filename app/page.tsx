@@ -8,7 +8,6 @@ export default function HomePage() {
   const [installHelpOpen, setInstallHelpOpen] = useState(false);
 
   useEffect(() => {
-    // Chrome/Edge: capture PWA install prompt
     const handler = (e: any) => {
       e.preventDefault();
       setInstallPromptEvent(e);
@@ -19,7 +18,6 @@ export default function HomePage() {
   }, []);
 
   async function onInstallClick() {
-    // If browser supports install prompt (Chrome/Edge), show it
     if (installPromptEvent) {
       installPromptEvent.prompt();
       try {
@@ -29,13 +27,20 @@ export default function HomePage() {
       }
       return;
     }
-
-    // Otherwise show simple instructions (iOS Safari etc.)
     setInstallHelpOpen(true);
   }
 
   return (
     <main style={styles.page}>
+      {/* Safe keyframes (no document access at module scope) */}
+      <style>{`
+        @keyframes fpFloat {
+          0% { transform: translate3d(0,0,0); opacity: 0.9; }
+          50% { transform: translate3d(0,-8px,0); opacity: 0.95; }
+          100% { transform: translate3d(0,0,0); opacity: 0.9; }
+        }
+      `}</style>
+
       {/* Minimal header */}
       <header style={styles.header}>
         <div style={styles.brand}>FlowPilot</div>
@@ -44,6 +49,8 @@ export default function HomePage() {
           <button type="button" onClick={onInstallClick} style={styles.navButton}>
             Install app
           </button>
+
+          {/* ✅ Correct Clerk routes */}
           <Link href="/sign-in" style={styles.navLink}>
             Sign in
           </Link>
@@ -55,7 +62,6 @@ export default function HomePage() {
 
       {/* Hero */}
       <section style={styles.hero}>
-        {/* Abstract flow background */}
         <div aria-hidden="true" style={styles.heroBgWrap}>
           <FlowBackdrop />
         </div>
@@ -68,6 +74,7 @@ export default function HomePage() {
           </p>
 
           <div style={styles.heroCtas}>
+            {/* ✅ Correct Clerk route */}
             <Link href="/sign-up" style={styles.ctaPrimaryLg}>
               Start Free Trial
             </Link>
@@ -84,7 +91,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Minimal sections (kept lean) */}
+      {/* Minimal sections */}
       <section id="what" style={styles.section}>
         <div style={styles.sectionHeader}>
           <h2 style={styles.h2}>What FlowPilot does</h2>
@@ -207,13 +214,7 @@ export default function HomePage() {
 function FlowBackdrop() {
   return (
     <div style={styles.backdrop}>
-      <svg
-        width="1200"
-        height="520"
-        viewBox="0 0 1200 520"
-        style={styles.backdropSvg}
-        xmlns="http://www.w3.org/2000/svg"
-      >
+      <svg width="1200" height="520" viewBox="0 0 1200 520" style={styles.backdropSvg} xmlns="http://www.w3.org/2000/svg">
         <path
           d="M-40 380 C 180 280, 260 460, 520 340 C 780 220, 880 300, 1240 140"
           fill="none"
@@ -237,12 +238,7 @@ function FlowBackdrop() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-  page: {
-    fontFamily: "Arial, Helvetica, sans-serif",
-    background: "#ffffff",
-    color: "#000",
-    minHeight: "100vh"
-  },
+  page: { fontFamily: "Arial, Helvetica, sans-serif", background: "#ffffff", color: "#000", minHeight: "100vh" },
 
   header: {
     maxWidth: 1100,
@@ -297,42 +293,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 900
   },
 
-  hero: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "64px 16px 24px 16px",
-    position: "relative",
-    overflow: "hidden"
-  },
+  hero: { maxWidth: 1100, margin: "0 auto", padding: "64px 16px 24px 16px", position: "relative", overflow: "hidden" },
 
-  heroBgWrap: {
-    position: "absolute",
-    inset: 0,
-    pointerEvents: "none",
-    opacity: 0.9
-  },
+  heroBgWrap: { position: "absolute", inset: 0, pointerEvents: "none", opacity: 0.9 },
 
-  heroInner: {
-    position: "relative",
-    maxWidth: 820,
-    paddingTop: 26,
-    paddingBottom: 48
-  },
+  heroInner: { position: "relative", maxWidth: 820, paddingTop: 26, paddingBottom: 48 },
 
-  h1: {
-    margin: 0,
-    fontSize: 56,
-    lineHeight: 1.02,
-    letterSpacing: -0.8
-  },
+  h1: { margin: 0, fontSize: 56, lineHeight: 1.02, letterSpacing: -0.8 },
 
-  subhead: {
-    marginTop: 14,
-    fontSize: 18,
-    lineHeight: 1.75,
-    maxWidth: 760,
-    color: "rgba(0,0,0,0.80)"
-  },
+  subhead: { marginTop: 14, fontSize: 18, lineHeight: 1.75, maxWidth: 760, color: "rgba(0,0,0,0.80)" },
 
   heroCtas: { marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" },
 
@@ -357,56 +326,23 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer"
   },
 
-  heroMeta: {
-    marginTop: 18,
-    display: "flex",
-    gap: 10,
-    alignItems: "center",
-    flexWrap: "wrap",
-    color: "rgba(0,0,0,0.75)",
-    fontSize: 13
-  },
+  heroMeta: { marginTop: 18, display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", color: "rgba(0,0,0,0.75)", fontSize: 13 },
 
-  metaPill: {
-    border: "1px solid rgba(0,0,0,0.10)",
-    borderRadius: 999,
-    padding: "6px 10px",
-    background: "rgba(255,255,255,0.85)",
-    fontWeight: 700
-  },
+  metaPill: { border: "1px solid rgba(0,0,0,0.10)", borderRadius: 999, padding: "6px 10px", background: "rgba(255,255,255,0.85)", fontWeight: 700 },
 
   metaDivider: { width: 4, height: 4, borderRadius: 99, background: "rgba(0,0,0,0.25)" },
 
-  section: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "56px 16px"
-  },
+  section: { maxWidth: 1100, margin: "0 auto", padding: "56px 16px" },
 
   sectionHeader: { maxWidth: 780 },
 
   h2: { margin: 0, fontSize: 22, letterSpacing: -0.2 },
 
-  sectionLead: {
-    marginTop: 10,
-    marginBottom: 0,
-    lineHeight: 1.75,
-    color: "rgba(0,0,0,0.78)"
-  },
+  sectionLead: { marginTop: 10, marginBottom: 0, lineHeight: 1.75, color: "rgba(0,0,0,0.78)" },
 
-  cards3: {
-    marginTop: 18,
-    display: "grid",
-    gap: 14,
-    gridTemplateColumns: "repeat(3, minmax(0, 1fr))"
-  },
+  cards3: { marginTop: 18, display: "grid", gap: 14, gridTemplateColumns: "repeat(3, minmax(0, 1fr))" },
 
-  card: {
-    border: "1px solid rgba(0,0,0,0.10)",
-    borderRadius: 16,
-    padding: 18,
-    background: "#fff"
-  },
+  card: { border: "1px solid rgba(0,0,0,0.10)", borderRadius: 16, padding: 18, background: "#fff" },
 
   cardTop: { display: "flex", alignItems: "center", gap: 10 },
 
@@ -416,54 +352,19 @@ const styles: Record<string, React.CSSProperties> = {
 
   p: { marginTop: 10, marginBottom: 0, lineHeight: 1.7, color: "rgba(0,0,0,0.78)" },
 
-  steps: {
-    marginTop: 18,
-    display: "grid",
-    gap: 12,
-    paddingLeft: 0,
-    listStyle: "none",
-    maxWidth: 780
-  },
+  steps: { marginTop: 18, display: "grid", gap: 12, paddingLeft: 0, listStyle: "none", maxWidth: 780 },
 
-  step: {
-    display: "grid",
-    gridTemplateColumns: "32px 1fr",
-    gap: 12,
-    border: "1px solid rgba(0,0,0,0.10)",
-    borderRadius: 16,
-    padding: 16,
-    background: "#fff"
-  },
+  step: { display: "grid", gridTemplateColumns: "32px 1fr", gap: 12, border: "1px solid rgba(0,0,0,0.10)", borderRadius: 16, padding: 16, background: "#fff" },
 
-  stepNum: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
-    background: "#7fff00",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: 900
-  },
+  stepNum: { width: 32, height: 32, borderRadius: 999, background: "#7fff00", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900 },
 
   stepTitle: { fontWeight: 900, marginBottom: 4 },
 
   stepBody: { lineHeight: 1.7, color: "rgba(0,0,0,0.78)" },
 
-  finalCta: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    padding: "56px 16px 72px 16px"
-  },
+  finalCta: { maxWidth: 1100, margin: "0 auto", padding: "56px 16px 72px 16px" },
 
-  finalCard: {
-    border: "1px solid rgba(0,0,0,0.12)",
-    borderRadius: 18,
-    padding: 22,
-    background: "#fff",
-    display: "grid",
-    gap: 18
-  },
+  finalCard: { border: "1px solid rgba(0,0,0,0.12)", borderRadius: 18, padding: 22, background: "#fff", display: "grid", gap: 18 },
 
   finalActions: { display: "grid", gap: 10, justifyItems: "start" },
 
@@ -471,15 +372,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   footer: { borderTop: "1px solid rgba(0,0,0,0.08)", padding: "28px 16px" },
 
-  footerInner: {
-    maxWidth: 1100,
-    margin: "0 auto",
-    display: "flex",
-    gap: 14,
-    alignItems: "center",
-    justifyContent: "space-between",
-    flexWrap: "wrap"
-  },
+  footerInner: { maxWidth: 1100, margin: "0 auto", display: "flex", gap: 14, alignItems: "center", justifyContent: "space-between", flexWrap: "wrap" },
 
   footerBrand: { fontWeight: 900 },
 
@@ -487,14 +380,7 @@ const styles: Record<string, React.CSSProperties> = {
 
   backdrop: { position: "absolute", inset: 0 },
 
-  backdropSvg: {
-    position: "absolute",
-    right: -120,
-    top: -70,
-    maxWidth: "1200px",
-    width: "1200px",
-    height: "520px"
-  },
+  backdropSvg: { position: "absolute", right: -120, top: -70, maxWidth: "1200px", width: "1200px", height: "520px" },
 
   backdropAnim: {
     position: "absolute",
@@ -504,51 +390,13 @@ const styles: Record<string, React.CSSProperties> = {
     animation: "fpFloat 10s ease-in-out infinite"
   },
 
-  modalOverlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-    zIndex: 50
-  },
+  modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, zIndex: 50 },
 
-  modalCard: {
-    width: "min(520px, 100%)",
-    background: "#fff",
-    borderRadius: 16,
-    border: "1px solid rgba(0,0,0,0.12)",
-    padding: 18
-  },
+  modalCard: { width: "min(520px, 100%)", background: "#fff", borderRadius: 16, border: "1px solid rgba(0,0,0,0.12)", padding: 18 },
 
   modalTitle: { fontWeight: 900, fontSize: 16, marginBottom: 8 },
 
   modalBody: { fontSize: 14, color: "rgba(0,0,0,0.85)" },
 
-  modalClose: {
-    marginTop: 10,
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    color: "#000",
-    fontWeight: 800,
-    cursor: "pointer"
-  }
+  modalClose: { marginTop: 10, padding: "10px 12px", borderRadius: 12, border: "1px solid rgba(0,0,0,0.12)", background: "#fff", color: "#000", fontWeight: 800, cursor: "pointer" }
 };
-
-/* Subtle animation (one-file drop-in) */
-if (typeof document !== "undefined" && !document.getElementById("fp-keyframes")) {
-  const style = document.createElement("style");
-  style.id = "fp-keyframes";
-  style.innerHTML = `
-    @keyframes fpFloat {
-      0% { transform: translate3d(0,0,0); opacity: 0.9; }
-      50% { transform: translate3d(0,-8px,0); opacity: 0.95; }
-      100% { transform: translate3d(0,0,0); opacity: 0.9; }
-    }
-  `;
-  document.head.appendChild(style);
-}
