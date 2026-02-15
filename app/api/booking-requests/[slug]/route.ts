@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { clerkClient } from "@clerk/nextjs/server";
 
 type ApiErr = { error: string };
 
@@ -11,6 +12,11 @@ function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v || v.trim().length === 0) throw new Error(`Missing environment variable: ${name}`);
   return v.trim();
+}
+
+function optionalEnv(name: string): string | null {
+  const v = process.env[name];
+  return v && v.trim().length > 0 ? v.trim() : null;
 }
 
 function supabaseAdmin() {
@@ -40,6 +46,73 @@ function timeToMinutes(hhmm: string): number {
 
 function isIsoDateOnly(s: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(s);
+}
+
+function formatRequestSummary(input: {
+  slug: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string | null;
+  requestedDate: string;
+  windowStart: string;
+  windowEnd: string;
+  notes?: string | null;
+}): string {
+  return [
+    `Booking request received`,
+    ``,
+    `Booking page: /book/${input.slug}`,
+    ``,
+    `Customer: ${input.customerName}`,
+    `Email: ${input.customerEmail}`,
+    input.customerPhone ? `Phone: ${input.customerPhone}` : null,
+    ``,
+    `Requested: ${input.requestedDate} • ${input.windowStart}-${input.windowEnd}`,
+    input.notes ? `Notes: ${input.notes}` : null
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function sendEmailResend(args: { to: string; subject: string; text: string }): Promise<void> {
+  const apiKey = optionalEnv("RESEND_API_KEY");
+  const from = optionalEnv("EMAIL_FROM");
+  const baseUrl = optionalEnv("PUBLIC_BASE_URL");
+
+  // If email isn’t configured yet, we don’t fail the booking request.
+  if (!apiKey || !from) return;
+
+  const payload = {
+    from,
+    to: args.to,
+    subject: args.subject,
+    text: args.text + (baseUrl ? `\n\n—\nFlowPilot: ${baseUrl}` : "")
+  };
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const t = await res.text().catch(() => "");
+    throw new Error(`Resend email failed (${res.status}): ${t.slice(0, 300)}`);
+  }
+}
+
+async function getSalonOwnerEmail(userId: string): Promise<string | null> {
+  try {
+    const user = await clerkClient.users.getUser(userId);
+    const primaryId = user.primaryEmailAddressId;
+    const primary = user.emailAddresses.find((e) => e.id === primaryId) ?? user.emailAddresses[0];
+    return primary?.emailAddress ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(
@@ -134,12 +207,75 @@ export async function POST(
 
     if (insErr) return jsonError(insErr.message, 500);
 
-    // If the request came from a browser form, redirect back with a success flag
-    if (!contentType.includes("application/json")) {
-      return NextResponse.redirect(new URL(`/book/${encodeURIComponent(slug)}?sent=1`, req.url), 303);
+    // ---- EMAIL CONFIRMATIONS (MVP) ----
+    // If RESEND_API_KEY/EMAIL_FROM are missing, booking still succeeds, emails are skipped.
+    const salonEmail = await getSalonOwnerEmail(booking.user_id);
+
+    const summary = formatRequestSummary({
+      slug: booking.slug,
+      customerName,
+      customerEmail,
+      customerPhone: customerPhone || null,
+      requestedDate,
+      windowStart,
+      windowEnd,
+      notes: notes || null
+    });
+
+    const baseUrl = optionalEnv("PUBLIC_BASE_URL") ?? "";
+    const adminUrl = baseUrl ? `${baseUrl}/dashboard/booking-requests` : "/dashboard/booking-requests";
+
+    const salonText =
+      summary +
+      `\n\nNext step:\nOpen booking requests: ${adminUrl}\n\nConfirm a time within the requested window (or decline).`;
+
+    const customerText =
+      `Thanks ${customerName} — we’ve received your booking request.\n\n` +
+      `Requested: ${requestedDate} • ${windowStart}-${windowEnd}\n\n` +
+      `The salon will confirm your exact appointment time shortly by email.` +
+      (notes ? `\n\nYour notes: ${notes}` : "");
+
+    let emailSalonSent = false;
+    let emailCustomerSent = false;
+
+    try {
+      if (salonEmail) {
+        await sendEmailResend({
+          to: salonEmail,
+          subject: `New booking request (${requestedDate} ${windowStart}-${windowEnd})`,
+          text: salonText
+        });
+        emailSalonSent = true;
+      }
+    } catch {
+      // ignore for MVP; booking is still created
     }
 
-    return NextResponse.json({ ok: true, requestId: inserted.id }, { status: 200 });
+    try {
+      await sendEmailResend({
+        to: customerEmail,
+        subject: "We’ve received your booking request",
+        text: customerText
+      });
+      emailCustomerSent = true;
+    } catch {
+      // ignore for MVP
+    }
+
+    // Redirect browser form submissions back to booking page with success flag
+    if (!contentType.includes("application/json")) {
+      const url = new URL(`/book/${encodeURIComponent(slug)}?sent=1`, req.url);
+      return NextResponse.redirect(url, 303);
+    }
+
+    return NextResponse.json(
+      {
+        ok: true,
+        requestId: inserted.id,
+        email: { salonSent: emailSalonSent, customerSent: emailCustomerSent }
+      },
+      { status: 200 }
+    );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown error.";
     return jsonError(msg, 500);
