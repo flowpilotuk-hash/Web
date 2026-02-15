@@ -59,9 +59,9 @@ function formatRequestSummary(input: {
   notes?: string | null;
 }): string {
   return [
-    `Booking request received`,
+    `New booking request`,
     ``,
-    `Booking page: /book/${input.slug}`,
+    `Public booking page: /book/${input.slug}`,
     ``,
     `Customer: ${input.customerName}`,
     `Email: ${input.customerEmail}`,
@@ -79,7 +79,7 @@ async function sendEmailResend(args: { to: string; subject: string; text: string
   const from = optionalEnv("EMAIL_FROM");
   const baseUrl = optionalEnv("PUBLIC_BASE_URL");
 
-  // If email isn’t configured yet, we don’t fail the booking request.
+  // Email not configured yet? Don't fail bookings.
   if (!apiKey || !from) return;
 
   const payload = {
@@ -106,7 +106,10 @@ async function sendEmailResend(args: { to: string; subject: string; text: string
 
 async function getSalonOwnerEmail(userId: string): Promise<string | null> {
   try {
-    const user = await clerkClient.users.getUser(userId);
+    // ✅ Your Clerk SDK exposes clerkClient() async
+    const client = await clerkClient();
+    const user = await client.users.getUser(userId);
+
     const primaryId = user.primaryEmailAddressId;
     const primary = user.emailAddresses.find((e) => e.id === primaryId) ?? user.emailAddresses[0];
     return primary?.emailAddress ?? null;
@@ -248,7 +251,7 @@ export async function POST(
         emailSalonSent = true;
       }
     } catch {
-      // ignore for MVP; booking is still created
+      // ignore for MVP
     }
 
     try {
