@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 export default function HomePage() {
   const [installPromptEvent, setInstallPromptEvent] = useState<any>(null);
@@ -37,6 +38,10 @@ export default function HomePage() {
     window.location.assign("/sign-up");
   }
 
+  function goDashboard() {
+    window.location.assign("/dashboard");
+  }
+
   return (
     <main style={styles.page}>
       {/* Safe keyframes */}
@@ -57,13 +62,25 @@ export default function HomePage() {
             Install app
           </button>
 
-          <button type="button" onClick={goSignIn} style={styles.navLinkBtn}>
-            Sign in
-          </button>
+          <SignedOut>
+            <button type="button" onClick={goSignIn} style={styles.navLinkBtn}>
+              Sign in
+            </button>
 
-          <button type="button" onClick={goSignUp} style={styles.ctaPrimaryBtn}>
-            Start Free Trial
-          </button>
+            <button type="button" onClick={goSignUp} style={styles.ctaPrimaryBtn}>
+              Start Free Trial
+            </button>
+          </SignedOut>
+
+          <SignedIn>
+            <button type="button" onClick={goDashboard} style={styles.ctaPrimaryBtn}>
+              Open dashboard
+            </button>
+
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          </SignedIn>
         </nav>
       </header>
 
@@ -81,9 +98,17 @@ export default function HomePage() {
           </p>
 
           <div style={styles.heroCtas}>
-            <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
-              Start Free Trial
-            </button>
+            <SignedOut>
+              <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
+                Start Free Trial
+              </button>
+            </SignedOut>
+
+            <SignedIn>
+              <button type="button" onClick={goDashboard} style={styles.ctaPrimaryLgBtn}>
+                Open dashboard
+              </button>
+            </SignedIn>
 
             <button type="button" onClick={onInstallClick} style={styles.ctaSecondaryLg}>
               Install app
@@ -177,9 +202,18 @@ export default function HomePage() {
           </div>
 
           <div style={styles.finalActions}>
-            <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
-              Start Free Trial
-            </button>
+            <SignedOut>
+              <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
+                Start Free Trial
+              </button>
+            </SignedOut>
+
+            <SignedIn>
+              <button type="button" onClick={goDashboard} style={styles.ctaPrimaryLgBtn}>
+                Open dashboard
+              </button>
+            </SignedIn>
+
             <div style={styles.subtleNote}>Subscription after trial • Cancel anytime</div>
           </div>
         </div>
