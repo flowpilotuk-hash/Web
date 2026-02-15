@@ -29,9 +29,17 @@ export default function HomePage() {
     setInstallHelpOpen(true);
   }
 
+  function goSignIn() {
+    window.location.assign("/sign-in");
+  }
+
+  function goSignUp() {
+    window.location.assign("/sign-up");
+  }
+
   return (
     <main style={styles.page}>
-      {/* Safe keyframes (no document access at module scope) */}
+      {/* Safe keyframes */}
       <style>{`
         @keyframes fpFloat {
           0% { transform: translate3d(0,0,0); opacity: 0.9; }
@@ -49,14 +57,13 @@ export default function HomePage() {
             Install app
           </button>
 
-          {/* Force full navigation (reliable in production) */}
-          <a href="/sign-in" style={styles.navLink}>
+          <button type="button" onClick={goSignIn} style={styles.navLinkBtn}>
             Sign in
-          </a>
+          </button>
 
-          <a href="/sign-up" style={styles.ctaPrimary}>
+          <button type="button" onClick={goSignUp} style={styles.ctaPrimaryBtn}>
             Start Free Trial
-          </a>
+          </button>
         </nav>
       </header>
 
@@ -74,9 +81,9 @@ export default function HomePage() {
           </p>
 
           <div style={styles.heroCtas}>
-            <a href="/sign-up" style={styles.ctaPrimaryLg}>
+            <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
               Start Free Trial
-            </a>
+            </button>
 
             <button type="button" onClick={onInstallClick} style={styles.ctaSecondaryLg}>
               Install app
@@ -112,7 +119,9 @@ export default function HomePage() {
               <span style={styles.accentBar} />
               <h3 style={styles.h3}>Smart booking link</h3>
             </div>
-            <p style={styles.p}>One clean booking page for clients — provider link or FlowPilot basic time-window requests.</p>
+            <p style={styles.p}>
+              One clean booking page for clients — provider link or FlowPilot basic time-window requests.
+            </p>
           </div>
 
           <div style={styles.card}>
@@ -168,9 +177,9 @@ export default function HomePage() {
           </div>
 
           <div style={styles.finalActions}>
-            <a href="/sign-up" style={styles.ctaPrimaryLg}>
+            <button type="button" onClick={goSignUp} style={styles.ctaPrimaryLgBtn}>
               Start Free Trial
-            </a>
+            </button>
             <div style={styles.subtleNote}>Subscription after trial • Cancel anytime</div>
           </div>
         </div>
@@ -261,17 +270,6 @@ const styles: Record<string, React.CSSProperties> = {
 
   nav: { display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" },
 
-  navLink: {
-    display: "inline-block",
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(0,0,0,0.12)",
-    background: "#fff",
-    color: "#000",
-    textDecoration: "none",
-    fontWeight: 700
-  },
-
   navButton: {
     padding: "10px 12px",
     borderRadius: 12,
@@ -282,15 +280,24 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer"
   },
 
-  ctaPrimary: {
-    display: "inline-block",
+  navLinkBtn: {
+    padding: "10px 12px",
+    borderRadius: 12,
+    border: "1px solid rgba(0,0,0,0.12)",
+    background: "#fff",
+    color: "#000",
+    fontWeight: 700,
+    cursor: "pointer"
+  },
+
+  ctaPrimaryBtn: {
     padding: "10px 12px",
     borderRadius: 12,
     border: "1px solid rgba(0,0,0,0.12)",
     background: "#7fff00",
     color: "#000",
-    textDecoration: "none",
-    fontWeight: 900
+    fontWeight: 900,
+    cursor: "pointer"
   },
 
   hero: { maxWidth: 1100, margin: "0 auto", padding: "64px 16px 24px 16px", position: "relative", overflow: "hidden" },
@@ -305,15 +312,14 @@ const styles: Record<string, React.CSSProperties> = {
 
   heroCtas: { marginTop: 22, display: "flex", gap: 12, flexWrap: "wrap" },
 
-  ctaPrimaryLg: {
-    display: "inline-block",
+  ctaPrimaryLgBtn: {
     padding: "14px 16px",
     borderRadius: 14,
     border: "1px solid rgba(0,0,0,0.14)",
     background: "#7fff00",
     color: "#000",
-    textDecoration: "none",
-    fontWeight: 900
+    fontWeight: 900,
+    cursor: "pointer"
   },
 
   ctaSecondaryLg: {
