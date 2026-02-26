@@ -106,7 +106,7 @@ async function sendEmailResend(args: { to: string; subject: string; text: string
 
 async function getSalonOwnerEmail(userId: string): Promise<string | null> {
   try {
-    // ✅ Your Clerk SDK exposes clerkClient() async
+    // IMPORTANT: In your Clerk SDK, clerkClient is async (function), so call it first.
     const client = await clerkClient();
     const user = await client.users.getUser(userId);
 
@@ -118,10 +118,7 @@ async function getSalonOwnerEmail(userId: string): Promise<string | null> {
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ slug: string }> }
-) {
+export async function POST(req: NextRequest, context: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await context.params;
     if (!slug || typeof slug !== "string") return jsonError("Missing slug.", 400);
@@ -141,7 +138,6 @@ export async function POST(
       return jsonError("This salon uses a booking provider link (no request form).", 409);
     }
 
-    // Accept either JSON or form submissions
     const contentType = req.headers.get("content-type") ?? "";
 
     let customerName = "";
@@ -210,8 +206,7 @@ export async function POST(
 
     if (insErr) return jsonError(insErr.message, 500);
 
-    // ---- EMAIL CONFIRMATIONS (MVP) ----
-    // If RESEND_API_KEY/EMAIL_FROM are missing, booking still succeeds, emails are skipped.
+    // Emails (MVP) — does not block booking if email fails.
     const salonEmail = await getSalonOwnerEmail(booking.user_id);
 
     const summary = formatRequestSummary({
@@ -251,7 +246,7 @@ export async function POST(
         emailSalonSent = true;
       }
     } catch {
-      // ignore for MVP
+      // ignore
     }
 
     try {
@@ -262,7 +257,7 @@ export async function POST(
       });
       emailCustomerSent = true;
     } catch {
-      // ignore for MVP
+      // ignore
     }
 
     // Redirect browser form submissions back to booking page with success flag
@@ -272,11 +267,7 @@ export async function POST(
     }
 
     return NextResponse.json(
-      {
-        ok: true,
-        requestId: inserted.id,
-        email: { salonSent: emailSalonSent, customerSent: emailCustomerSent }
-      },
+      { ok: true, requestId: inserted.id, email: { salonSent: emailSalonSent, customerSent: emailCustomerSent } },
       { status: 200 }
     );
   } catch (e) {
